@@ -4,9 +4,11 @@ import {
   calcScore,
   defaultSettings,
   delay,
+  EFFECTS,
   effectLabels,
   PHASE_LABELS,
   randomFocus,
+  settingsToApiPayload,
 } from './lib/gameLogic'
 
 const PLAYER_LABELS = ['P1', 'P2', 'P3', 'P4', 'P5']
@@ -32,13 +34,7 @@ export default function AdminScreen() {
       fetch('/api/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          effect_count_weights: next.effectCountWeights,
-          pre_shrink_countdown_sec: next.preShrinkCountdownSec,
-          shrink_speed: next.shrinkSpeed,
-          initial_zoom: next.initialZoom,
-          min_zoom: next.minZoom,
-        }),
+        body: JSON.stringify(settingsToApiPayload(next)),
       }).catch(() => {})
     },
     [patch, settings],
@@ -74,6 +70,7 @@ export default function AdminScreen() {
         effects,
         focus_x: focus.x,
         focus_y: focus.y,
+        mosaic_block_size: settings.mosaicBlockSize,
       }),
     })
     if (!res.ok) {
@@ -106,7 +103,11 @@ export default function AdminScreen() {
       const drawRes = await fetch('/api/round/draw', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ weights: settings.effectCountWeights }),
+        body: JSON.stringify({
+          weights: settings.effectCountWeights,
+          max_effect_count: settings.maxEffectCount,
+          enabled_effects: settings.enabledEffects,
+        }),
       })
       if (!drawRes.ok) throw new Error('抽選に失敗しました')
       const draw = await drawRes.json()
@@ -181,9 +182,27 @@ export default function AdminScreen() {
   const canStop = ['display', 'countdown', 'shrinking'].includes(state.phase)
   const isAnswering = state.phase === 'answering'
 
+  const maxN = Math.max(1, Math.min(5, settings.maxEffectCount ?? 5))
+
+  const toggleEffect = (id) => {
+    const set = new Set(settings.enabledEffects ?? [])
+    if (set.has(id)) {
+      if (set.size <= 1) return
+      set.delete(id)
+    } else {
+      set.add(id)
+    }
+    const enabledEffects = EFFECTS.map((e) => e.id).filter((x) => set.has(x))
+    const nextMax = Math.min(settings.maxEffectCount, enabledEffects.length)
+    updateSettings({
+      enabledEffects,
+      maxEffectCount: Math.max(1, nextMax),
+    })
+  }
+
   const weightInputs = useMemo(
     () =>
-      [0, 1, 2, 3, 4, 5].map((n) => (
+      Array.from({ length: maxN + 1 }, (_, n) => (
         <label key={n} className="weightCell">
           <span>{n}</span>
           <input
@@ -199,7 +218,7 @@ export default function AdminScreen() {
           />
         </label>
       )),
-    [settings.effectCountWeights, updateSettings],
+    [maxN, settings.effectCountWeights, updateSettings],
   )
 
   return (
@@ -303,7 +322,48 @@ export default function AdminScreen() {
             />
           </label>
         </div>
-        <div className="panelTitle sub">効果個数の重み（0〜5）</div>
+        <div className="paramRow">
+          <label>
+            1ターンの効果数上限
+            <select
+              value={maxN}
+              onChange={(e) => updateSettings({ maxEffectCount: Number(e.target.value) })}
+            >
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n} 個まで
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            モザイクのブロックサイズ（px）
+            <input
+              type="number"
+              min={2}
+              max={128}
+              step={1}
+              value={settings.mosaicBlockSize}
+              onChange={(e) => updateSettings({ mosaicBlockSize: Number(e.target.value) })}
+            />
+          </label>
+        </div>
+        <div className="muted">ブロックが大きいほどモザイクが粗くなります</div>
+
+        <div className="panelTitle sub">出現させる効果</div>
+        <div className="effectToggles">
+          {EFFECTS.map(({ id, label }) => {
+            const on = settings.enabledEffects?.includes(id)
+            return (
+              <label key={id} className={on ? 'effectToggle on' : 'effectToggle'}>
+                <input type="checkbox" checked={on} onChange={() => toggleEffect(id)} />
+                {label}
+              </label>
+            )
+          })}
+        </div>
+
+        <div className="panelTitle sub">効果個数の重み（0〜{maxN}）</div>
         <div className="weightGrid">{weightInputs}</div>
         <label className="checkRow">
           <input

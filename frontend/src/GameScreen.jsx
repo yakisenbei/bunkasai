@@ -109,7 +109,6 @@ export default function GameScreen() {
   return (
     <div className="gameGrid">
       <section className="gameImagePanel">
-        <div className="panelTitle">出題画像</div>
         {effectiveImage && imageSrc ? (
           <div className="imageFrame">
             {showRoulette ? (
@@ -141,11 +140,6 @@ export default function GameScreen() {
       </section>
 
       <aside className="gameRightPanel">
-        <div className="panelTitle">情報</div>
-        <div className="kv">
-          <div className="k">状態</div>
-          <div className="v">{phaseLabel}</div>
-        </div>
         <div className="kv">
           <div className="k">カウント</div>
           <div className="v">
@@ -163,10 +157,6 @@ export default function GameScreen() {
         <div className="kv">
           <div className="k">効果</div>
           <div className="v">{effectLabels(state.effects)}</div>
-        </div>
-        <div className="kv">
-          <div className="k">画像</div>
-          <div className="v">{effectiveImage || '--'}</div>
         </div>
       </aside>
 

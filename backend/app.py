@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from game_logic import ALL_EFFECTS, calc_score, draw_round
+from game_logic import ALL_EFFECTS, calc_score, draw_round, normalize_enabled
 from image_processing import process_image, processed_filename
 
 app = FastAPI()
@@ -50,14 +50,20 @@ class ProcessRequest(BaseModel):
     effects: List[str] = Field(default_factory=list)
     focus_x: float = 0.5
     focus_y: float = 0.5
+    mosaic_block_size: Optional[int] = None
 
 
 class DrawRequest(BaseModel):
     weights: Optional[List[float]] = None
+    max_effect_count: Optional[int] = None
+    enabled_effects: Optional[List[str]] = None
 
 
 class ConfigUpdate(BaseModel):
     effect_count_weights: Optional[List[float]] = None
+    max_effect_count: Optional[int] = None
+    enabled_effects: Optional[List[str]] = None
+    mosaic_block_size: Optional[int] = None
     pre_shrink_countdown_sec: Optional[float] = None
     shrink_speed: Optional[float] = None
     initial_zoom: Optional[float] = None
@@ -98,7 +104,9 @@ async def list_effects():
 async def round_draw(body: DrawRequest):
     cfg = load_config()
     weights = body.weights or cfg.get("effect_count_weights", [1] * 6)
-    n, effects = draw_round(weights)
+    max_count = body.max_effect_count if body.max_effect_count is not None else cfg.get("max_effect_count", 5)
+    enabled = body.enabled_effects or cfg.get("enabled_effects")
+    n, effects = draw_round(weights, max_count, enabled)
     return {
         "effect_count": n,
         "effects": effects,
@@ -116,12 +124,15 @@ async def process_image_endpoint(body: ProcessRequest):
     if invalid:
         return JSONResponse({"error": f"unknown effects: {invalid}"}, status_code=400)
 
-    out_name = processed_filename(body.image_name, body.effects)
+    cfg = load_config()
+    mosaic_size = body.mosaic_block_size if body.mosaic_block_size is not None else cfg.get("mosaic_block_size", 16)
+
+    out_name = processed_filename(body.image_name, body.effects, mosaic_size)
     dst = os.path.join(PROCESSED_DIR, out_name)
 
     if not os.path.exists(dst):
         try:
-            process_image(src, dst, body.effects)
+            process_image(src, dst, body.effects, mosaic_size)
         except RuntimeError as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
 

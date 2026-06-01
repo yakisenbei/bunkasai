@@ -61,3 +61,8 @@ input{padding:8px 10px;border-radius:10px;border:1px solid #2d3748;background:#0
 .weightCell input{width:100%}
 .panelTitle.sub{font-size:13px;margin-top:8px}
 .checkRow{display:flex;align-items:center;gap:8px;font-size:14px;color:#9fb5d1}
+.effectToggles{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.effectToggle{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;border:1px solid #223044;background:#0b0f14;cursor:pointer;font-size:14px;color:#9fb5d1}
+.effectToggle.on{border-color:#3b82f6;background:#0b2142;color:#e6edf3}
+.effectToggle input{cursor:pointer}
+.paramRow select{padding:8px 10px;border-radius:10px;border:1px solid #2d3748;background:#0f1724;color:#e6edf3}

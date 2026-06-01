@@ -3,37 +3,49 @@ import os
 import subprocess
 from typing import List, Optional
 
-EFFECT_FILTERS = {
+STATIC_FILTERS = {
     "invert": "negate",
     "grayscale": "hue=s=0",
     "flip": "vflip",
-    "mosaic": "scale=iw/16:ih/16:flags=neighbor,scale=iw*16:ih*16:flags=neighbor",
-    "hide": "drawbox=x=iw/4:y=ih/4:w=iw/2:h=ih/2:color=black@0.9:t=fill",
 }
 
 
-def build_vf_chain(effects: List[str]) -> Optional[str]:
+def mosaic_filter(block_size: int) -> str:
+    """block_size: モザイク1マスの辺のピクセル数（大きいほど粗い）。"""
+    n = max(2, min(128, int(block_size)))
+    return f"scale=iw/{n}:ih/{n}:flags=neighbor,scale=iw*{n}:ih*{n}:flags=neighbor"
+
+
+def build_vf_chain(effects: List[str], mosaic_block_size: int = 16) -> Optional[str]:
     parts = []
     for effect in effects:
-        filt = EFFECT_FILTERS.get(effect)
-        if filt:
-            parts.append(filt)
+        if effect == "mosaic":
+            parts.append(mosaic_filter(mosaic_block_size))
+        elif effect in STATIC_FILTERS:
+            parts.append(STATIC_FILTERS[effect])
     if not parts:
         return None
     return ",".join(parts)
 
 
-def processed_filename(image_name: str, effects: List[str]) -> str:
+def processed_filename(
+    image_name: str, effects: List[str], mosaic_block_size: int = 16
+) -> str:
     base, ext = os.path.splitext(image_name)
     if not ext:
         ext = ".jpg"
-    key = f"{image_name}|{','.join(sorted(effects))}"
+    key = f"{image_name}|{','.join(sorted(effects))}|m{mosaic_block_size}"
     digest = hashlib.md5(key.encode()).hexdigest()[:12]
     return f"{base}_{digest}{ext}"
 
 
-def process_image(src_path: str, dst_path: str, effects: List[str]) -> None:
-    vf = build_vf_chain(effects)
+def process_image(
+    src_path: str,
+    dst_path: str,
+    effects: List[str],
+    mosaic_block_size: int = 16,
+) -> None:
+    vf = build_vf_chain(effects, mosaic_block_size)
     cmd = ["ffmpeg", "-y", "-i", src_path]
     if vf:
         cmd += ["-vf", vf]

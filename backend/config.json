@@ -1,12 +1,8 @@
 {
-  "effect_count_weights": [
-    2.0,
-    5.0,
-    2.0,
-    1.0,
-    1.0,
-    1.0
-  ],
+  "effect_count_weights": [2.0, 5.0, 2.0, 1.0, 1.0, 1.0],
+  "max_effect_count": 5,
+  "enabled_effects": ["invert", "mosaic", "grayscale", "flip"],
+  "mosaic_block_size": 16,
   "pre_shrink_countdown_sec": 3.0,
   "shrink_speed": 0.12,
   "initial_zoom": 10.0,
