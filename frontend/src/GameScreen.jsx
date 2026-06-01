@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useGameState } from './state/GameState'
-import { effectLabels, PHASE_LABELS } from './lib/gameLogic'
+import { calcScore, effectLabels, PHASE_LABELS } from './lib/gameLogic'
 
 const PLAYER_LABELS = ['P1', 'P2', 'P3', 'P4', 'P5']
 
@@ -56,7 +56,7 @@ export default function GameScreen() {
     }
   }, [state.phase, state.settings?.initialZoom])
 
-  // 縮小アニメーション（ローカル描画のみ。WS には送らない）
+  // 縮小アニメーション（ローカル描画のみ。停止→再開時は scaleRef の続きから）
   useEffect(() => {
     if (state.phase !== 'shrinking') {
       if (shrinkRef.current) cancelAnimationFrame(shrinkRef.current)
@@ -66,10 +66,6 @@ export default function GameScreen() {
     const settings = state.settings || {}
     const minZoom = settings.minZoom ?? 1
     const speed = settings.shrinkSpeed ?? 0.12
-    if (state.shrinkScale != null) {
-      scaleRef.current = state.shrinkScale
-      setDisplayScale(state.shrinkScale)
-    }
     let last = performance.now()
 
     const tick = (now) => {
@@ -84,13 +80,14 @@ export default function GameScreen() {
     return () => {
       if (shrinkRef.current) cancelAnimationFrame(shrinkRef.current)
     }
-  }, [state.phase, state.settings, state.shrinkScale])
+  }, [state.phase, state.settings?.shrinkSpeed, state.settings?.minZoom])
 
   const focus = state.focusCenter || { x: 0.5, y: 0.5 }
   const scale = ['display', 'countdown', 'shrinking', 'answering'].includes(state.phase)
     ? displayScale
     : state.settings?.initialZoom ?? 1
   const phaseLabel = PHASE_LABELS[state.phase] || state.phase
+  const pendingScore = calcScore(state.effectCount ?? state.effects?.length ?? 0)
 
   const showRoulette = state.phase === 'roulette_count' || state.phase === 'roulette_effects'
   const rouletteText = useMemo(() => {
@@ -151,12 +148,16 @@ export default function GameScreen() {
           <div className="v">{state.turn}</div>
         </div>
         <div className="kv">
-          <div className="k">効果数 n</div>
+          <div className="k">効果数</div>
           <div className="v">{state.effectCount ?? 0}</div>
         </div>
         <div className="kv">
           <div className="k">効果</div>
           <div className="v">{effectLabels(state.effects)}</div>
+        </div>
+        <div className="kv">
+          <div className="k">獲得点</div>
+          <div className="v scoreHighlight">{pendingScore}</div>
         </div>
       </aside>
 
