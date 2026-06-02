@@ -33,12 +33,12 @@ input{padding:8px 10px;border-radius:10px;border:1px solid #2d3748;background:#0
 .imageFrame{position:relative;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:12px;border:1px solid #223044;background:#0b0f14}
 .questionImage{max-width:100%;max-height:100%;object-fit:contain}
 
-.gameRightPanel .kv{grid-template-columns:88px 1fr;gap:6px;padding:5px 0;font-size:14px}
-.gameRightPanel .scoreHighlight{font-size:20px;color:#93c5fd}
+.gameRightPanel .kv{grid-template-columns:88px 1fr;gap:6px;padding:10px 0;font-size:14px;}
+.gameRightPanel .scoreHighlight{font-size:60px;color:#d0ff4e;font-weight:600}
 .kv{display:grid;grid-template-columns:120px 1fr;gap:10px;padding:8px 0;border-bottom:1px dashed #223044}
 .kv:last-child{border-bottom:none}
-.kv .k{color:#9fb5d1}
-.kv .v{font-weight:700}
+.kv .k{color:#9fb5d1;font-size:20px}
+.kv .v{font-weight:700;font-size:20px}
 
 .gameScoreBar .scoreCard{padding:6px 8px;gap:4px;border-radius:10px}
 .gameScoreBar .scoreValue{font-size:22px}

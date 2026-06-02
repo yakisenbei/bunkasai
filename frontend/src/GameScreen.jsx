@@ -156,8 +156,10 @@ export default function GameScreen() {
           <div className="v">{effectLabels(state.effects)}</div>
         </div>
         <div className="kv">
-          <div className="k">獲得点</div>
-          <div className="v scoreHighlight">{pendingScore}</div>
+          <div className="k">
+            獲得点
+          </div>
+          <div className="scoreHighlight">{pendingScore}</div>
         </div>
       </aside>
 
