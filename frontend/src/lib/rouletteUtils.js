@@ -59,6 +59,6 @@ export function buildEffectRoulette(enabledIds, winEffectId) {
   return buildSpinningList(base, winIndex)
 }
 
-export function rouletteSpinMs() {
-  return ROULETTE_SPINNING_SEC * 1000 + 350
+export function rouletteSpinMs(spinningSec = ROULETTE_SPINNING_SEC) {
+  return spinningSec * 1000 + 350
 }

@@ -75,6 +75,13 @@ class ConfigUpdate(BaseModel):
     effect_count_anim_sec: Optional[float] = None
     score_count_anim_sec: Optional[float] = None
     stats_reveal_delay_sec: Optional[float] = None
+    correct_overlay_opacity: Optional[float] = None
+    correct_score_delay_sec: Optional[float] = None
+    correct_score_anim_sec: Optional[float] = None
+    game_image_fade_sec: Optional[float] = None
+    roulette_spinning_sec: Optional[float] = None
+    confetti_pieces: Optional[int] = None
+    confetti_gravity: Optional[float] = None
 
 
 @app.get("/api/images")

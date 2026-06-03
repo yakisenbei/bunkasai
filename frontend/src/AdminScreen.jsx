@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import GamePreview from './components/GamePreview'
+import ImageFocusPicker from './components/ImageFocusPicker'
 import { useGameState } from './state/GameState'
 import {
   calcScore,
@@ -11,6 +12,7 @@ import {
   randomFocus,
   settingsToApiPayload,
 } from './lib/gameLogic'
+import { nextImageInList } from './lib/imageUtils'
 import { rouletteSpinMs } from './lib/rouletteUtils'
 
 const PLAYER_LABELS = ['P1', 'P2', 'P3', 'P4', 'P5']
@@ -122,8 +124,10 @@ export default function AdminScreen() {
         effects: [],
         rouletteDisplay: { ...rouletteBase, spinKey: spinBase },
         processedImageUrl: null,
+        correctReveal: null,
       })
-      await delay(rouletteSpinMs())
+      const spinMs = rouletteSpinMs(settings.rouletteSpinningSec ?? 4)
+      await delay(spinMs)
 
       if (n > 0) {
         patch({
@@ -131,10 +135,12 @@ export default function AdminScreen() {
           effects,
           rouletteDisplay: { ...rouletteBase, spinKey: spinBase + 1 },
         })
-        await delay(rouletteSpinMs())
+        await delay(spinMs)
       }
 
-      const focus = state.useRandomCenter ? randomFocus() : state.focusCenter || randomFocus()
+      const focus = state.useRandomCenter
+        ? randomFocus()
+        : state.focusCenter || { x: 0.5, y: 0.5 }
       const processed = await processCurrentImage(imageName, effects, focus)
 
       patch({
@@ -157,9 +163,17 @@ export default function AdminScreen() {
 
   const handleCorrect = (playerIndex) => {
     const n = state.effectCount ?? state.effects?.length ?? 0
-    adjustScore(playerIndex, calcScore(n))
+    const pointsAwarded = calcScore(n)
+    const nextImage = nextImageInList(images, state.currentImage)
     patch({
-      phase: 'idle',
+      phase: 'correct',
+      currentImage: nextImage,
+      correctReveal: {
+        id: Date.now(),
+        playerIndex,
+        pointsAwarded,
+        scoresBefore: state.scores.slice(),
+      },
       timeLeftSec: null,
       effects: [],
       effectCount: 0,
@@ -229,7 +243,10 @@ export default function AdminScreen() {
       <section className="adminPanel">
         <div className="panelTitle">進行</div>
         <div className="row">
-          <button onClick={startRound} disabled={starting || state.phase !== 'idle'}>
+          <button
+            onClick={startRound}
+            disabled={starting || !['idle', 'correct'].includes(state.phase)}
+          >
             {starting ? '準備中…' : 'ルーレット開始'}
           </button>
           <button onClick={stop} disabled={!canStop}>
@@ -294,6 +311,61 @@ export default function AdminScreen() {
       <section className="adminPanel adminPanelScroll">
         <div className="panelTitle">パラメータ</div>
         <div className="adminParamsScroll">
+        <div className="panelTitle sub">正解画面</div>
+        <div className="paramRow">
+          <label>
+            オーバーレイ濃さ（0〜1）
+            <input
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              value={settings.correctOverlayOpacity}
+              onChange={(e) => updateSettings({ correctOverlayOpacity: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            得点加算までの待機（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.correctScoreDelaySec}
+              onChange={(e) => updateSettings({ correctScoreDelaySec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            得点加算アニメ（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.correctScoreAnimSec}
+              onChange={(e) => updateSettings({ correctScoreAnimSec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            紙吹雪の数
+            <input
+              type="number"
+              min={0}
+              step={10}
+              value={settings.confettiPieces}
+              onChange={(e) => updateSettings({ confettiPieces: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            紙吹雪の重力
+            <input
+              type="number"
+              min={0}
+              step={0.01}
+              value={settings.confettiGravity}
+              onChange={(e) => updateSettings({ confettiGravity: Number(e.target.value) })}
+            />
+          </label>
+        </div>
+
         <div className="panelTitle sub">演出・暗転</div>
         <div className="paramRow">
           <label>
@@ -366,6 +438,26 @@ export default function AdminScreen() {
               step={0.1}
               value={settings.statsRevealDelaySec}
               onChange={(e) => updateSettings({ statsRevealDelaySec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            出題画像フェード（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.gameImageFadeSec}
+              onChange={(e) => updateSettings({ gameImageFadeSec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            ルーレット回転（秒）
+            <input
+              type="number"
+              min={1}
+              step={0.5}
+              value={settings.rouletteSpinningSec}
+              onChange={(e) => updateSettings({ rouletteSpinningSec: Number(e.target.value) })}
             />
           </label>
         </div>
@@ -446,34 +538,38 @@ export default function AdminScreen() {
 
         <div className="panelTitle sub">効果個数の重み（0〜{maxN}）</div>
         <div className="weightGrid">{weightInputs}</div>
-        <label className="checkRow">
-          <input
-            type="checkbox"
-            checked={state.useRandomCenter}
-            onChange={(e) => patch({ useRandomCenter: e.target.checked })}
-          />
-          拡大中心をランダムにする
-        </label>
         </div>
       </section>
 
       <section className="adminPanel">
-        <div className="panelTitle">出題画像</div>
+        <div className="panelTitle">出題画像・拡大中心</div>
         {images.length === 0 ? (
           <div className="emptyHint">backend/images/ に画像を配置してください</div>
         ) : (
-          <div className="imageList">
-            {images.map((name) => (
-              <button
-                key={name}
-                className={name === state.currentImage ? 'chip active' : 'chip'}
-                onClick={() => setCurrentImage(name)}
-                disabled={state.phase !== 'idle' && state.phase !== 'result'}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="imageList">
+              {images.map((name) => (
+                <button
+                  key={name}
+                  className={name === state.currentImage ? 'chip active' : 'chip'}
+                  onClick={() => setCurrentImage(name)}
+                  disabled={state.phase !== 'idle' && state.phase !== 'result'}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+            <ImageFocusPicker
+              imageName={state.currentImage || images[0]}
+              focusCenter={state.focusCenter}
+              useRandomCenter={state.useRandomCenter}
+              disabled={state.phase !== 'idle' && state.phase !== 'result'}
+              onPickFocus={(focus) =>
+                patch({ focusCenter: focus, useRandomCenter: false })
+              }
+              onToggleRandom={(checked) => patch({ useRandomCenter: checked })}
+            />
+          </>
         )}
       </section>
 

@@ -34,7 +34,7 @@ function quizRouletteDesign() {
   }
 }
 
-function RouletteSpin({ prizeList, prizeIndex, spinKey, className }) {
+function RouletteSpin({ prizeList, prizeIndex, spinKey, className, spinningSec }) {
   const [start, setStart] = useState(false)
   const designPlugin = useCallback(() => quizRouletteDesign(), [])
 
@@ -50,7 +50,7 @@ function RouletteSpin({ prizeList, prizeIndex, spinKey, className }) {
         prizes={prizeList}
         prizeIndex={prizeIndex}
         start={start}
-        spinningTime={ROULETTE_SPINNING_SEC}
+        spinningTime={spinningSec}
         type="horizontal"
         designPlugin={designPlugin}
         options={{ stopInCenter: true }}
@@ -61,7 +61,13 @@ function RouletteSpin({ prizeList, prizeIndex, spinKey, className }) {
 }
 
 /** ルーレット本体のみ（暗転は GameScreen の StageDimBackdrop が担当） */
-export default function RouletteOverlay({ phase, rouletteDisplay, maxEffectCount, enabledEffects }) {
+export default function RouletteOverlay({
+  phase,
+  rouletteDisplay,
+  maxEffectCount,
+  enabledEffects,
+  spinningSec = ROULETTE_SPINNING_SEC,
+}) {
   const spinKey = rouletteDisplay?.spinKey ?? 0
   const effectCount = rouletteDisplay?.effectCount ?? 0
   const effects = rouletteDisplay?.effects ?? []
@@ -98,6 +104,7 @@ export default function RouletteOverlay({ phase, rouletteDisplay, maxEffectCount
               prizeList={countRoulette.prizeList}
               prizeIndex={countRoulette.prizeIndex}
               spinKey={`count-${spinKey}`}
+              spinningSec={spinningSec}
             />
           </>
         )}
@@ -117,6 +124,7 @@ export default function RouletteOverlay({ phase, rouletteDisplay, maxEffectCount
                       prizeList={roulette.prizeList}
                       prizeIndex={roulette.prizeIndex}
                       spinKey={roulette.key}
+                      spinningSec={spinningSec}
                     />
                   </div>
                 ))}

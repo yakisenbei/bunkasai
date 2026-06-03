@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useGameState } from './state/GameState'
 import GameRightStats from './components/GameRightStats'
 import QuestionImage from './components/QuestionImage'
+import CorrectOverlay from './components/CorrectOverlay'
 import ResultOverlay from './components/ResultOverlay'
 import RouletteOverlay from './components/RouletteOverlay'
 import StageDimBackdrop from './components/StageDimBackdrop'
@@ -10,15 +11,29 @@ import { waitMs } from './lib/animationUtils'
 const PLAYER_LABELS = ['P1', 'P2', 'P3', 'P4', 'P5']
 
 export default function GameScreen() {
-  const { state, patch } = useGameState()
+  const { state, patch, adjustScore } = useGameState()
   const [images, setImages] = useState([])
   const [displayScale, setDisplayScale] = useState(1)
   const [rouletteDim, setRouletteDim] = useState(0)
   const [statsMode, setStatsMode] = useState('hidden')
+  const [gameImageVisible, setGameImageVisible] = useState(false)
   const shrinkRef = useRef(null)
   const scaleRef = useRef(1)
   const prevPhaseRef = useRef(state.phase)
   const revealedTurnRef = useRef(-1)
+  const correctRevealRef = useRef(state.correctReveal)
+  const appliedRevealIdsRef = useRef(new Set())
+
+  useEffect(() => {
+    correctRevealRef.current = state.correctReveal
+  }, [state.correctReveal])
+
+  const handleCorrectScoreApplied = useCallback(() => {
+    const r = correctRevealRef.current
+    if (!r || appliedRevealIdsRef.current.has(r.id)) return
+    appliedRevealIdsRef.current.add(r.id)
+    adjustScore(r.playerIndex, r.pointsAwarded)
+  }, [adjustScore])
 
   const settings = state.settings || {}
   const isRoulettePhase =
@@ -56,6 +71,7 @@ export default function GameScreen() {
     prevPhaseRef.current = state.phase
 
     if (isRoulettePhase) {
+      setGameImageVisible(false)
       setRouletteDim(0)
       const t = window.setTimeout(() => setRouletteDim(1), 30)
       return () => window.clearTimeout(t)
@@ -78,9 +94,10 @@ export default function GameScreen() {
   // ルーレット終了後: 右カラム演出 → カウントダウン開始
   useEffect(() => {
     if (state.phase !== 'display') {
-      if (state.phase === 'idle' || state.phase === 'result') {
+      if (state.phase === 'idle' || state.phase === 'correct' || state.phase === 'result') {
         setStatsMode('hidden')
-        revealedTurnRef.current = -1
+        setGameImageVisible(false)
+        if (state.phase !== 'display') revealedTurnRef.current = -1
       }
       return undefined
     }
@@ -98,6 +115,7 @@ export default function GameScreen() {
 
       await waitMs(fadeOutMs)
       if (cancelled) return
+      setGameImageVisible(true)
       await waitMs(delayMs)
       if (cancelled) return
 
@@ -185,6 +203,7 @@ export default function GameScreen() {
   const minZoom = settings.minZoom ?? 1
 
   const showQuestionImage =
+    gameImageVisible &&
     !showRouletteContent &&
     ['display', 'countdown', 'shrinking', 'answering'].includes(state.phase)
 
@@ -209,6 +228,18 @@ export default function GameScreen() {
           scores={state.scores}
           playerLabels={PLAYER_LABELS}
           fadeInSec={settings.resultOverlayFadeInSec ?? 0.6}
+          confettiPieces={settings.confettiPieces ?? 320}
+          confettiGravity={settings.confettiGravity ?? 0.22}
+        />
+      )}
+
+      {state.phase === 'correct' && state.correctReveal && (
+        <CorrectOverlay
+          key={state.correctReveal.id}
+          playerLabels={PLAYER_LABELS}
+          correctReveal={state.correctReveal}
+          settings={settings}
+          onScoreAnimationComplete={handleCorrectScoreApplied}
         />
       )}
 
@@ -218,6 +249,7 @@ export default function GameScreen() {
           rouletteDisplay={state.rouletteDisplay}
           maxEffectCount={settings.maxEffectCount ?? 5}
           enabledEffects={settings.enabledEffects}
+          spinningSec={settings.rouletteSpinningSec ?? 4}
         />
       )}
 
@@ -226,10 +258,11 @@ export default function GameScreen() {
           <div className="imageFrame">
             {showQuestionImage && (
               <div
-                className="zoomViewport"
+                className="zoomViewport gameImageReveal"
                 style={{
                   transform: `scale(${scale})`,
                   transformOrigin: `${focus.x * 100}% ${focus.y * 100}%`,
+                  animationDuration: `${settings.gameImageFadeSec ?? 0.5}s`,
                 }}
               >
                 <QuestionImage

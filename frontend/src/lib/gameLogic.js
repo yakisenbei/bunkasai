@@ -51,6 +51,13 @@ export function defaultSettings(cfg = {}) {
     effectCountAnimSec: cfg.effect_count_anim_sec ?? 1,
     scoreCountAnimSec: cfg.score_count_anim_sec ?? 1,
     statsRevealDelaySec: cfg.stats_reveal_delay_sec ?? 0.2,
+    correctOverlayOpacity: cfg.correct_overlay_opacity ?? 0.72,
+    correctScoreDelaySec: cfg.correct_score_delay_sec ?? 1,
+    correctScoreAnimSec: cfg.correct_score_anim_sec ?? 1,
+    gameImageFadeSec: cfg.game_image_fade_sec ?? 0.5,
+    rouletteSpinningSec: cfg.roulette_spinning_sec ?? 4,
+    confettiPieces: cfg.confetti_pieces ?? 320,
+    confettiGravity: cfg.confetti_gravity ?? 0.22,
   }
 }
 
@@ -71,6 +78,13 @@ export function settingsToApiPayload(settings) {
     effect_count_anim_sec: settings.effectCountAnimSec,
     score_count_anim_sec: settings.scoreCountAnimSec,
     stats_reveal_delay_sec: settings.statsRevealDelaySec,
+    correct_overlay_opacity: settings.correctOverlayOpacity,
+    correct_score_delay_sec: settings.correctScoreDelaySec,
+    correct_score_anim_sec: settings.correctScoreAnimSec,
+    game_image_fade_sec: settings.gameImageFadeSec,
+    roulette_spinning_sec: settings.rouletteSpinningSec,
+    confetti_pieces: settings.confettiPieces,
+    confetti_gravity: settings.confettiGravity,
   }
 }
 

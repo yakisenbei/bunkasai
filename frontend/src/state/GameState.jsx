@@ -17,6 +17,7 @@ const initialState = {
   shrinkScale: null,
   settings: defaultSettings(),
   rouletteDisplay: null,
+  correctReveal: null,
 }
 
 function applyPatch(state, patch) {

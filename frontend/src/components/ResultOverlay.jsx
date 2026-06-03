@@ -2,7 +2,13 @@ import React, { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
 import { getResultStandings, useWindowSize } from '../lib/resultUtils'
 
-export default function ResultOverlay({ scores, playerLabels, fadeInSec = 0.6 }) {
+export default function ResultOverlay({
+  scores,
+  playerLabels,
+  fadeInSec = 0.6,
+  confettiPieces = 320,
+  confettiGravity = 0.22,
+}) {
   const { width, height } = useWindowSize()
   const { rows, winners, maxScore } = getResultStandings(scores, playerLabels)
   const [opacity, setOpacity] = useState(0)
@@ -28,8 +34,8 @@ export default function ResultOverlay({ scores, playerLabels, fadeInSec = 0.6 })
         width={width}
         height={height}
         recycle
-        numberOfPieces={320}
-        gravity={0.22}
+        numberOfPieces={confettiPieces}
+        gravity={confettiGravity}
       />
       <div className="resultBackdrop" style={{ opacity: opacity * 0.62, transition }} />
       <div className="resultCard" style={{ opacity, transition }}>

@@ -134,6 +134,51 @@ input{padding:8px 10px;border-radius:10px;border:1px solid #2d3748;background:#0
 .effectRevealText.revealed{clip-path:inset(0 0 0 0)}
 .adminPanelScroll{display:flex;flex-direction:column;max-height:min(70vh,520px)}
 .adminParamsScroll{overflow-y:auto;flex:1;min-height:0;padding-right:6px}
+.focusPicker{margin-top:12px}
+.focusPickerHint{margin:0 0 8px}
+.focusPickerFrame{
+  position:relative;max-height:280px;border-radius:12px;overflow:hidden;
+  border:1px solid #223044;background:#0b0f14;cursor:crosshair;
+}
+.focusPickerFrame.random{cursor:not-allowed;opacity:.85}
+.focusPickerFrame.disabled{cursor:not-allowed;opacity:.6;pointer-events:none}
+.focusPickerImage{width:100%;height:auto;max-height:280px;object-fit:contain;display:block;vertical-align:middle}
+.focusPickerMarker{
+  position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;
+  border:2px solid #3b82f6;border-radius:50%;box-shadow:0 0 0 3px rgba(59,130,246,.35);
+  pointer-events:none;
+}
+.focusPickerMarker::after{
+  content:'';position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;
+  background:#3b82f6;border-radius:50%;
+}
+.focusPickerCoords{margin-top:6px;font-size:12px}
+.gameImageReveal{animation:gameImageFadeIn .5s ease}
+@keyframes gameImageFadeIn{from{opacity:0}to{opacity:1}}
+
+.correctOverlay{
+  position:fixed;inset:0;z-index:960;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.correctBackdrop{position:absolute;inset:0;background:#000}
+.correctCard{
+  position:relative;z-index:1;min-width:min(92vw,560px);padding:32px 36px;border-radius:20px;
+  border:1px solid #22c55e;background:linear-gradient(180deg,#0f2a1a 0%,#0a1424 100%);
+  box-shadow:0 24px 80px rgba(0,0,0,.55);text-align:center;
+}
+.correctTitle{font-size:28px;font-weight:800;color:#86efac;letter-spacing:.15em;margin-bottom:12px}
+.correctWinner{font-size:48px;font-weight:900;color:#fff;line-height:1.15}
+.correctPoints{font-size:36px;font-weight:800;color:#fbbf24;margin:8px 0 24px}
+.correctScoreList{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.correctScoreItem{
+  display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-radius:10px;
+  border:1px solid #223044;background:rgba(11,15,20,.8);font-size:20px;font-weight:700;
+}
+.correctScoreItem.winner{border-color:#22c55e;background:rgba(15,40,25,.9)}
+.correctPoints.animating{color:#fde047}
+.correctScoreName{color:#9fb5d1}
+.correctScoreItem.winner .correctScoreName{color:#bbf7d0}
+.correctScoreValue{font-variant-numeric:tabular-nums}
 .rouletteStageContent{
   position:relative;z-index:1;width:min(96vw,920px);padding:20px 16px 24px;
   display:flex;flex-direction:column;align-items:center;gap:16px;
