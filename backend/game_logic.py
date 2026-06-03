@@ -1,7 +1,10 @@
 import random
 from typing import List, Optional, Tuple
 
-ALL_EFFECTS = ["invert", "mosaic", "grayscale", "flip"]
+ALL_EFFECTS = ["invert", "mosaic", "grayscale", "flip", "black_reveal"]
+
+# ffmpeg では処理せずフロント側で描画する効果
+FRONTEND_ONLY_EFFECTS = {"black_reveal"}
 
 
 def normalize_enabled(enabled: Optional[List[str]]) -> List[str]:

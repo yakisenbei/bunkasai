@@ -3,7 +3,10 @@ export const EFFECTS = [
   { id: 'mosaic', label: 'モザイク' },
   { id: 'grayscale', label: 'モノクロ' },
   { id: 'flip', label: '上下反転' },
+  { id: 'black_reveal', label: '黒塗り復元' },
 ]
+
+export const FRONTEND_ONLY_EFFECTS = new Set(['black_reveal'])
 
 export const PHASE_LABELS = {
   idle: '待機',
@@ -41,6 +44,13 @@ export function defaultSettings(cfg = {}) {
     shrinkSpeed: cfg.shrink_speed ?? 0.12,
     initialZoom: cfg.initial_zoom ?? 4,
     minZoom: cfg.min_zoom ?? 1,
+    overlayFadeInSec: cfg.overlay_fade_in_sec ?? 0.6,
+    overlayFadeOutSec: cfg.overlay_fade_out_sec ?? 0.6,
+    resultOverlayFadeInSec: cfg.result_overlay_fade_in_sec ?? 0.6,
+    effectLabelRevealSec: cfg.effect_label_reveal_sec ?? 0.8,
+    effectCountAnimSec: cfg.effect_count_anim_sec ?? 1,
+    scoreCountAnimSec: cfg.score_count_anim_sec ?? 1,
+    statsRevealDelaySec: cfg.stats_reveal_delay_sec ?? 0.2,
   }
 }
 
@@ -54,6 +64,13 @@ export function settingsToApiPayload(settings) {
     shrink_speed: settings.shrinkSpeed,
     initial_zoom: settings.initialZoom,
     min_zoom: settings.minZoom,
+    overlay_fade_in_sec: settings.overlayFadeInSec,
+    overlay_fade_out_sec: settings.overlayFadeOutSec,
+    result_overlay_fade_in_sec: settings.resultOverlayFadeInSec,
+    effect_label_reveal_sec: settings.effectLabelRevealSec,
+    effect_count_anim_sec: settings.effectCountAnimSec,
+    score_count_anim_sec: settings.scoreCountAnimSec,
+    stats_reveal_delay_sec: settings.statsRevealDelaySec,
   }
 }
 

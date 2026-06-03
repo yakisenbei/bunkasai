@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import GamePreview from './components/GamePreview'
 import { useGameState } from './state/GameState'
 import {
   calcScore,
@@ -10,6 +11,7 @@ import {
   randomFocus,
   settingsToApiPayload,
 } from './lib/gameLogic'
+import { rouletteSpinMs } from './lib/rouletteUtils'
 
 const PLAYER_LABELS = ['P1', 'P2', 'P3', 'P4', 'P5']
 
@@ -92,14 +94,6 @@ export default function AdminScreen() {
     const nextTurn = (state.turn ?? 0) + 1
 
     try {
-      patch({
-        turn: nextTurn,
-        currentImage: imageName,
-        phase: 'roulette_count',
-        rouletteDisplay: { spinning: true },
-        processedImageUrl: null,
-      })
-
       const drawRes = await fetch('/api/round/draw', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -112,20 +106,33 @@ export default function AdminScreen() {
       if (!drawRes.ok) throw new Error('抽選に失敗しました')
       const draw = await drawRes.json()
       const { effect_count: n, effects } = draw
+      const spinBase = Date.now()
+      const rouletteBase = {
+        effectCount: n,
+        effects,
+        maxEffectCount: settings.maxEffectCount,
+        enabledEffects: settings.enabledEffects,
+      }
 
       patch({
+        turn: nextTurn,
+        currentImage: imageName,
         phase: 'roulette_count',
         effectCount: n,
-        rouletteDisplay: { n, spinning: false },
+        effects: [],
+        rouletteDisplay: { ...rouletteBase, spinKey: spinBase },
+        processedImageUrl: null,
       })
-      await delay(1200)
+      await delay(rouletteSpinMs())
 
-      patch({
-        phase: 'roulette_effects',
-        effects,
-        rouletteDisplay: { n, effects },
-      })
-      await delay(1200)
+      if (n > 0) {
+        patch({
+          phase: 'roulette_effects',
+          effects,
+          rouletteDisplay: { ...rouletteBase, spinKey: spinBase + 1 },
+        })
+        await delay(rouletteSpinMs())
+      }
 
       const focus = state.useRandomCenter ? randomFocus() : state.focusCenter || randomFocus()
       const processed = await processCurrentImage(imageName, effects, focus)
@@ -139,13 +146,7 @@ export default function AdminScreen() {
         shrinkScale: settings.initialZoom,
         rouletteDisplay: null,
       })
-      await delay(600)
-
-      patch({
-        phase: 'countdown',
-        timeLeftSec: settings.preShrinkCountdownSec,
-        shrinkScale: settings.initialZoom,
-      })
+      // カウントダウンはゲーム画面側（暗転フェードアウト→右カラム演出後）で開始
     } catch (err) {
       alert(err.message || String(err))
       patch({ phase: 'idle', rouletteDisplay: null, timeLeftSec: null })
@@ -222,7 +223,9 @@ export default function AdminScreen() {
   )
 
   return (
-    <div className="adminGrid">
+    <div className="adminLayout">
+      <div className="adminControls">
+        <div className="adminGrid">
       <section className="adminPanel">
         <div className="panelTitle">進行</div>
         <div className="row">
@@ -288,8 +291,86 @@ export default function AdminScreen() {
         </section>
       )}
 
-      <section className="adminPanel">
+      <section className="adminPanel adminPanelScroll">
         <div className="panelTitle">パラメータ</div>
+        <div className="adminParamsScroll">
+        <div className="panelTitle sub">演出・暗転</div>
+        <div className="paramRow">
+          <label>
+            暗転フェードイン（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.overlayFadeInSec}
+              onChange={(e) => updateSettings({ overlayFadeInSec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            暗転フェードアウト（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.overlayFadeOutSec}
+              onChange={(e) => updateSettings({ overlayFadeOutSec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            リザルト暗転（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.resultOverlayFadeInSec}
+              onChange={(e) => updateSettings({ resultOverlayFadeInSec: Number(e.target.value) })}
+            />
+          </label>
+        </div>
+        <div className="paramRow">
+          <label>
+            効果名表示（秒・左→右）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.effectLabelRevealSec}
+              onChange={(e) => updateSettings({ effectLabelRevealSec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            効果数カウント（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.effectCountAnimSec}
+              onChange={(e) => updateSettings({ effectCountAnimSec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            獲得点カウント（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.scoreCountAnimSec}
+              onChange={(e) => updateSettings({ scoreCountAnimSec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            演出開始前待機（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.statsRevealDelaySec}
+              onChange={(e) => updateSettings({ statsRevealDelaySec: Number(e.target.value) })}
+            />
+          </label>
+        </div>
+
+        <div className="panelTitle sub">画像・縮小</div>
         <div className="paramRow">
           <label>
             縮小前カウント（秒）
@@ -373,6 +454,7 @@ export default function AdminScreen() {
           />
           拡大中心をランダムにする
         </label>
+        </div>
       </section>
 
       <section className="adminPanel">
@@ -421,6 +503,9 @@ export default function AdminScreen() {
           ))}
         </div>
       </section>
+        </div>
+      </div>
+      <GamePreview />
     </div>
   )
 }

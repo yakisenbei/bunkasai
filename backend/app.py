@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from game_logic import ALL_EFFECTS, calc_score, draw_round, normalize_enabled
+from game_logic import ALL_EFFECTS, FRONTEND_ONLY_EFFECTS, calc_score, draw_round, normalize_enabled
 from image_processing import process_image, processed_filename
 
 app = FastAPI()
@@ -68,6 +68,13 @@ class ConfigUpdate(BaseModel):
     shrink_speed: Optional[float] = None
     initial_zoom: Optional[float] = None
     min_zoom: Optional[float] = None
+    overlay_fade_in_sec: Optional[float] = None
+    overlay_fade_out_sec: Optional[float] = None
+    result_overlay_fade_in_sec: Optional[float] = None
+    effect_label_reveal_sec: Optional[float] = None
+    effect_count_anim_sec: Optional[float] = None
+    score_count_anim_sec: Optional[float] = None
+    stats_reveal_delay_sec: Optional[float] = None
 
 
 @app.get("/api/images")
@@ -124,6 +131,7 @@ async def process_image_endpoint(body: ProcessRequest):
     if invalid:
         return JSONResponse({"error": f"unknown effects: {invalid}"}, status_code=400)
 
+    ffmpeg_effects = [e for e in body.effects if e not in FRONTEND_ONLY_EFFECTS]
     cfg = load_config()
     mosaic_size = body.mosaic_block_size if body.mosaic_block_size is not None else cfg.get("mosaic_block_size", 16)
 
@@ -132,7 +140,7 @@ async def process_image_endpoint(body: ProcessRequest):
 
     if not os.path.exists(dst):
         try:
-            process_image(src, dst, body.effects, mosaic_size)
+            process_image(src, dst, ffmpeg_effects, mosaic_size)
         except RuntimeError as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
 

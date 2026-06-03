@@ -1,19 +1,30 @@
 {
   "effect_count_weights": [
     1.0,
-    0.0,
-    0.0,
     1.0,
     1.0,
-    1.0
+    1.0,
+    1.0,
+    1000.0
   ],
-  "max_effect_count": 1,
+  "max_effect_count": 5,
   "enabled_effects": [
-    "flip"
+    "invert",
+    "mosaic",
+    "grayscale",
+    "flip",
+    "black_reveal"
   ],
   "mosaic_block_size": 3,
   "pre_shrink_countdown_sec": 3.0,
   "shrink_speed": 0.12,
   "initial_zoom": 25.0,
-  "min_zoom": 1.2
+  "min_zoom": 1.2,
+  "overlay_fade_in_sec": 0.6,
+  "overlay_fade_out_sec": 0.6,
+  "result_overlay_fade_in_sec": 0.6,
+  "effect_label_reveal_sec": 0.8,
+  "effect_count_anim_sec": 1.0,
+  "score_count_anim_sec": 1.0,
+  "stats_reveal_delay_sec": 0.2
 }
