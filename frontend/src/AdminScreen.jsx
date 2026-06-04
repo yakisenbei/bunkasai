@@ -187,6 +187,8 @@ export default function AdminScreen() {
         pointsAwarded,
         scoresBefore: state.scores.slice(),
         imageName: state.currentImage,
+        processedImageUrl: state.processedImageUrl ?? null,
+        effects: state.effects ?? [],
       },
       timeLeftSec: null,
       effects: [],
@@ -359,6 +361,38 @@ export default function AdminScreen() {
             />
           </label>
           <label>
+            reveal アニメ（秒）
+            <input
+              type="number"
+              min={0.1}
+              step={0.1}
+              value={settings.correctRevealDurationSec}
+              onChange={(e) => updateSettings({ correctRevealDurationSec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            reveal ディレイ（秒）
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={settings.correctRevealDelaySec}
+              onChange={(e) => updateSettings({ correctRevealDelaySec: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            reveal 加速度
+            <select
+              value={settings.correctRevealEasing}
+              onChange={(e) => updateSettings({ correctRevealEasing: e.target.value })}
+            >
+              <option value="easeIn">加速（easeIn）</option>
+              <option value="easeOut">減速（easeOut）</option>
+              <option value="easeInOut">加減速（easeInOut）</option>
+              <option value="linear">一定（linear）</option>
+            </select>
+          </label>
+          <label>
             紙吹雪の数
             <input
               type="number"
@@ -376,6 +410,17 @@ export default function AdminScreen() {
               step={0.01}
               value={settings.confettiGravity}
               onChange={(e) => updateSettings({ confettiGravity: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            正解音量（0〜1）
+            <input
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              value={settings.correctSoundVolume}
+              onChange={(e) => updateSettings({ correctSoundVolume: Number(e.target.value) })}
             />
           </label>
         </div>

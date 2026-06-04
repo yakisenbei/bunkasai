@@ -54,10 +54,14 @@ export function defaultSettings(cfg = {}) {
     correctOverlayOpacity: cfg.correct_overlay_opacity ?? 0.72,
     correctScoreDelaySec: cfg.correct_score_delay_sec ?? 1,
     correctScoreAnimSec: cfg.correct_score_anim_sec ?? 1,
+    correctRevealDurationSec: cfg.correct_reveal_duration_sec ?? 1.8,
+    correctRevealEasing: cfg.correct_reveal_easing ?? 'easeOut',
+    correctRevealDelaySec: cfg.correct_reveal_delay_sec ?? 0.4,
     gameImageFadeSec: cfg.game_image_fade_sec ?? 0.5,
     rouletteSpinningSec: cfg.roulette_spinning_sec ?? 4,
     confettiPieces: cfg.confetti_pieces ?? 320,
     confettiGravity: cfg.confetti_gravity ?? 0.22,
+    correctSoundVolume: cfg.correct_sound_volume ?? 1.0,
   }
 }
 
@@ -81,10 +85,14 @@ export function settingsToApiPayload(settings) {
     correct_overlay_opacity: settings.correctOverlayOpacity,
     correct_score_delay_sec: settings.correctScoreDelaySec,
     correct_score_anim_sec: settings.correctScoreAnimSec,
+    correct_reveal_duration_sec: settings.correctRevealDurationSec,
+    correct_reveal_easing: settings.correctRevealEasing,
+    correct_reveal_delay_sec: settings.correctRevealDelaySec,
     game_image_fade_sec: settings.gameImageFadeSec,
     roulette_spinning_sec: settings.rouletteSpinningSec,
     confetti_pieces: settings.confettiPieces,
     confetti_gravity: settings.confettiGravity,
+    correct_sound_volume: settings.correctSoundVolume,
   }
 }
 

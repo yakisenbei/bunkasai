@@ -10,6 +10,7 @@ import { waitMs } from './lib/animationUtils'
 import useSound from 'use-sound'
 import RouletteSoundFile from '../sounds/電子ルーレット.mp3'
 import CorrectSoundFile from '../sounds/correct.mp3'
+import Correct2SoundFile from '../sounds/correct2.mp3'
 
 const PLAYER_LABELS = ['P1', 'P2', 'P3', 'P4', 'P5']
 
@@ -18,8 +19,11 @@ export default function GameScreen() {
   const [images, setImages] = useState([])
   const [displayScale, setDisplayScale] = useState(1)
   const [rouletteDim, setRouletteDim] = useState(0)
+  const settings = state.settings || {}
+  const correctVolume = settings.correctSoundVolume ?? 1.0
   const [UseSound] = useSound(RouletteSoundFile)
-  const [playCorrect] = useSound(CorrectSoundFile)
+  const [playCorrect] = useSound(CorrectSoundFile, { volume: correctVolume })
+  const [playCorrect2] = useSound(Correct2SoundFile, { volume: correctVolume })
   const [statsMode, setStatsMode] = useState('hidden')
   const [gameImageVisible, setGameImageVisible] = useState(false)
   const shrinkRef = useRef(null)
@@ -35,10 +39,10 @@ export default function GameScreen() {
   useEffect(() => {
     if (state.phase === 'correct') {
       playCorrect()
+      playCorrect2()
     }
-  }, [state.phase, state.correctReveal?.id, playCorrect])
+  }, [state.phase, state.correctReveal?.id, playCorrect, playCorrect2])
 
-  const settings = state.settings || {}
   const isRoulettePhase =
     state.phase === 'roulette_count' || state.phase === 'roulette_effects'
   const showRouletteContent = isRoulettePhase
