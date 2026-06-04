@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import GamePreview from './components/GamePreview'
 import ImageFocusPicker from './components/ImageFocusPicker'
 import { useGameState } from './state/GameState'
+import Sound from '../sounds/correct.mp3';
+
+import useSound from 'use-sound';
 import {
   calcScore,
   defaultSettings,
@@ -160,7 +163,8 @@ export default function AdminScreen() {
       setStarting(false)
     }
   }
-
+  
+  const [UseSound] = useSound(Sound);
   const handleCorrect = (playerIndex) => {
     const n = state.effectCount ?? state.effects?.length ?? 0
     const pointsAwarded = calcScore(n)
@@ -257,7 +261,10 @@ export default function AdminScreen() {
           </button>
         </div>
         <div className="row">
-          <button className="danger" onClick={endGame}>
+          <button className="danger" onClick={() => {
+            endGame();
+            UseSound(Sound);
+          }}>
             リザルト
           </button>
           <button className="danger" onClick={initialize}>
@@ -300,7 +307,10 @@ export default function AdminScreen() {
           <p className="answerHint">正解したプレイヤーを選んでください（+{pendingScore} 点）</p>
           <div className="answerButtons">
             {PLAYER_LABELS.map((label, idx) => (
-              <button key={label} className="answerBtn" onClick={() => handleCorrect(idx)}>
+              <button key={label} className="answerBtn" onClick={() => {
+                  handleCorrect(idx);
+                  UseSound(Sound);
+                }}>
                 {label} 正解
               </button>
             ))}

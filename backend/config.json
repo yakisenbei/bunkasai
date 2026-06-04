@@ -5,7 +5,7 @@
     1.0,
     1.0,
     1.0,
-    1000.0
+    100000.0
   ],
   "max_effect_count": 5,
   "enabled_effects": [
@@ -31,7 +31,7 @@
   "correct_score_delay_sec": 1.0,
   "correct_score_anim_sec": 1.0,
   "game_image_fade_sec": 0.5,
-  "roulette_spinning_sec": 4.0,
+  "roulette_spinning_sec": 5.0,
   "confetti_pieces": 320,
   "confetti_gravity": 0.22
 }

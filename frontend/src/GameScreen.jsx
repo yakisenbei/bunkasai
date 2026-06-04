@@ -7,6 +7,8 @@ import ResultOverlay from './components/ResultOverlay'
 import RouletteOverlay from './components/RouletteOverlay'
 import StageDimBackdrop from './components/StageDimBackdrop'
 import { waitMs } from './lib/animationUtils'
+import useSound from 'use-sound';
+import Sound from '../sounds/電子ルーレット.mp3';
 
 const PLAYER_LABELS = ['P1', 'P2', 'P3', 'P4', 'P5']
 
@@ -15,6 +17,7 @@ export default function GameScreen() {
   const [images, setImages] = useState([])
   const [displayScale, setDisplayScale] = useState(1)
   const [rouletteDim, setRouletteDim] = useState(0)
+  const [UseSound] = useSound(Sound);
   const [statsMode, setStatsMode] = useState('hidden')
   const [gameImageVisible, setGameImageVisible] = useState(false)
   const shrinkRef = useRef(null)
@@ -72,7 +75,8 @@ export default function GameScreen() {
 
     if (isRoulettePhase) {
       setGameImageVisible(false)
-      setRouletteDim(0)
+      setRouletteDim(0);
+      UseSound(Sound);
       const t = window.setTimeout(() => setRouletteDim(1), 30)
       return () => window.clearTimeout(t)
     }

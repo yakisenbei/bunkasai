@@ -9,6 +9,7 @@ import {
   ROULETTE_PRIZE_WIDTH,
   ROULETTE_SPINNING_SEC,
 } from '../lib/rouletteUtils'
+import useSound from 'use-sound'
 
 function renderRoulettePrize(item) {
   return (
@@ -37,9 +38,10 @@ function quizRouletteDesign() {
 function RouletteSpin({ prizeList, prizeIndex, spinKey, className, spinningSec }) {
   const [start, setStart] = useState(false)
   const designPlugin = useCallback(() => quizRouletteDesign(), [])
+  const [UseSound] = useSound(Sound);
 
   useEffect(() => {
-    setStart(false)
+    setStart(false);
     const id = window.setTimeout(() => setStart(true), 80)
     return () => window.clearTimeout(id)
   }, [spinKey, prizeIndex])
