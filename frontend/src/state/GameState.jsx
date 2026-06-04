@@ -13,7 +13,7 @@ const initialState = {
   currentImage: null,
   processedImageUrl: null,
   focusCenter: null,
-  useRandomCenter: true,
+  useRandomCenter: false,
   shrinkScale: null,
   settings: defaultSettings(),
   rouletteDisplay: null,

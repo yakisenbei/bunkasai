@@ -2,9 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import GamePreview from './components/GamePreview'
 import ImageFocusPicker from './components/ImageFocusPicker'
 import { useGameState } from './state/GameState'
-import Sound from '../sounds/correct.mp3';
-
-import useSound from 'use-sound';
 import {
   calcScore,
   defaultSettings,
@@ -25,6 +22,14 @@ export default function AdminScreen() {
   const [images, setImages] = useState([])
   const [manualDelta, setManualDelta] = useState(100)
   const [starting, setStarting] = useState(false)
+
+  // 次ターン用の予約（いつでも変更可能）
+  const [pendingImage, setPendingImage] = useState(null)
+  const [pendingFocusCenter, setPendingFocusCenter] = useState(null)
+  const [pendingUseRandomCenter, setPendingUseRandomCenter] = useState(false)
+
+  // pendingImage が未設定の場合は state.currentImage を表示に使う
+  const displayImage = pendingImage ?? state.currentImage
 
   const settings = state.settings ?? defaultSettings()
 
@@ -89,7 +94,7 @@ export default function AdminScreen() {
 
   const startRound = async () => {
     if (starting) return
-    const imageName = state.currentImage || images[0]
+    const imageName = pendingImage ?? state.currentImage ?? images[0]
     if (!imageName) {
       alert('出題画像を選択するか、backend/images/ に画像を配置してください')
       return
@@ -141,9 +146,11 @@ export default function AdminScreen() {
         await delay(spinMs)
       }
 
-      const focus = state.useRandomCenter
+      // ルーレット終了時点の予約値を使ってフォーカスを決定
+      const useRandom = pendingUseRandomCenter
+      const focus = useRandom
         ? randomFocus()
-        : state.focusCenter || { x: 0.5, y: 0.5 }
+        : pendingFocusCenter || { x: 0.5, y: 0.5 }
       const processed = await processCurrentImage(imageName, effects, focus)
 
       patch({
@@ -151,6 +158,7 @@ export default function AdminScreen() {
         effectCount: n,
         effects,
         focusCenter: focus,
+        useRandomCenter: useRandom,
         processedImageUrl: processed.processed_url,
         shrinkScale: settings.initialZoom,
         rouletteDisplay: null,
@@ -164,12 +172,12 @@ export default function AdminScreen() {
     }
   }
   
-  const [UseSound] = useSound(Sound);
   const handleCorrect = (playerIndex) => {
     console.log('Correct! Player:', playerIndex);
     const n = state.effectCount ?? state.effects?.length ?? 0
     const pointsAwarded = calcScore(n)
     const nextImage = nextImageInList(images, state.currentImage)
+    adjustScore(playerIndex, pointsAwarded)
     patch({
       phase: 'correct',
       currentImage: nextImage,
@@ -178,6 +186,7 @@ export default function AdminScreen() {
         playerIndex,
         pointsAwarded,
         scoresBefore: state.scores.slice(),
+        imageName: state.currentImage,
       },
       timeLeftSec: null,
       effects: [],
@@ -195,7 +204,7 @@ export default function AdminScreen() {
     reset()
   }
 
-  const setCurrentImage = (name) => patch({ currentImage: name })
+  const setCurrentImage = (name) => setPendingImage(name)
 
   const phaseLabel = PHASE_LABELS[state.phase] || state.phase
   const pendingScore = calcScore(state.effectCount ?? state.effects?.length ?? 0)
@@ -262,11 +271,7 @@ export default function AdminScreen() {
           </button>
         </div>
         <div className="row">
-          <button className="danger" onClick={() => {
-            endGame();
-            handleCorrectScoreApplied();
-            UseSound(Sound);
-          }}>
+          <button className="danger" onClick={endGame}>
             リザルト
           </button>
           <button className="danger" onClick={initialize}>
@@ -309,11 +314,7 @@ export default function AdminScreen() {
           <p className="answerHint">正解したプレイヤーを選んでください（+{pendingScore} 点）</p>
           <div className="answerButtons">
             {PLAYER_LABELS.map((label, idx) => (
-              <button key={label} className="answerBtn" onClick={() => {
-                  handleCorrect(idx);
-                  onScoreAnimationComplete={handleCorrectScoreApplied}                
-                  UseSound(Sound);
-                }}>
+              <button key={label} className="answerBtn" onClick={() => handleCorrect(idx)}>
                 {label} 正解
               </button>
             ))}
@@ -564,23 +565,22 @@ export default function AdminScreen() {
               {images.map((name) => (
                 <button
                   key={name}
-                  className={name === state.currentImage ? 'chip active' : 'chip'}
+                  className={name === displayImage ? 'chip active' : 'chip'}
                   onClick={() => setCurrentImage(name)}
-                  disabled={state.phase !== 'idle' && state.phase !== 'result'}
                 >
                   {name}
                 </button>
               ))}
             </div>
             <ImageFocusPicker
-              imageName={state.currentImage || images[0]}
-              focusCenter={state.focusCenter}
-              useRandomCenter={state.useRandomCenter}
-              disabled={state.phase !== 'idle' && state.phase !== 'result'}
-              onPickFocus={(focus) =>
-                patch({ focusCenter: focus, useRandomCenter: false })
-              }
-              onToggleRandom={(checked) => patch({ useRandomCenter: checked })}
+              imageName={displayImage || images[0]}
+              focusCenter={pendingFocusCenter}
+              useRandomCenter={pendingUseRandomCenter}
+              onPickFocus={(focus) => {
+                setPendingFocusCenter(focus)
+                setPendingUseRandomCenter(false)
+              }}
+              onToggleRandom={(checked) => setPendingUseRandomCenter(checked)}
             />
           </>
         )}

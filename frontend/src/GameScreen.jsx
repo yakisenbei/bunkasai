@@ -7,36 +7,36 @@ import ResultOverlay from './components/ResultOverlay'
 import RouletteOverlay from './components/RouletteOverlay'
 import StageDimBackdrop from './components/StageDimBackdrop'
 import { waitMs } from './lib/animationUtils'
-import useSound from 'use-sound';
-import Sound from '../sounds/電子ルーレット.mp3';
+import useSound from 'use-sound'
+import RouletteSoundFile from '../sounds/電子ルーレット.mp3'
+import CorrectSoundFile from '../sounds/correct.mp3'
 
 const PLAYER_LABELS = ['P1', 'P2', 'P3', 'P4', 'P5']
 
 export default function GameScreen() {
-  const { state, patch, adjustScore } = useGameState()
+  const { state, patch } = useGameState()
   const [images, setImages] = useState([])
   const [displayScale, setDisplayScale] = useState(1)
   const [rouletteDim, setRouletteDim] = useState(0)
-  const [UseSound] = useSound(Sound);
+  const [UseSound] = useSound(RouletteSoundFile)
+  const [playCorrect] = useSound(CorrectSoundFile)
   const [statsMode, setStatsMode] = useState('hidden')
   const [gameImageVisible, setGameImageVisible] = useState(false)
   const shrinkRef = useRef(null)
   const scaleRef = useRef(1)
   const prevPhaseRef = useRef(state.phase)
   const revealedTurnRef = useRef(-1)
-  const correctRevealRef = useRef(state.correctReveal)
-  const appliedRevealIdsRef = useRef(new Set())
-
-  useEffect(() => {
-    correctRevealRef.current = state.correctReveal
-  }, [state.correctReveal])
 
   const handleCorrectScoreApplied = useCallback(() => {
-    const r = correctRevealRef.current
-    if (!r || appliedRevealIdsRef.current.has(r.id)) return
-    appliedRevealIdsRef.current.add(r.id)
-    adjustScore(r.playerIndex, r.pointsAwarded / 2)//直す
-  }, [adjustScore])
+    // 得点加算は handleCorrect（正解ボタン押下時）で即座に実行済み
+  }, [])
+
+  // 正解フェーズに入ったら正解音を再生
+  useEffect(() => {
+    if (state.phase === 'correct') {
+      playCorrect()
+    }
+  }, [state.phase, state.correctReveal?.id, playCorrect])
 
   const settings = state.settings || {}
   const isRoulettePhase =
@@ -76,7 +76,7 @@ export default function GameScreen() {
     if (isRoulettePhase) {
       setGameImageVisible(false)
       setRouletteDim(0);
-      UseSound(Sound);
+      UseSound(RouletteSoundFile)
       const t = window.setTimeout(() => setRouletteDim(1), 30)
       return () => window.clearTimeout(t)
     }
