@@ -1,11 +1,11 @@
 {
   "effect_count_weights": [
     1.0,
+    3.0,
+    2.0,
     1.0,
     1.0,
-    1.0,
-    1.0,
-    100000.0
+    1.0
   ],
   "max_effect_count": 5,
   "enabled_effects": [

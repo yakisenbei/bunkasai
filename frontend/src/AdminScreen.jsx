@@ -166,6 +166,7 @@ export default function AdminScreen() {
   
   const [UseSound] = useSound(Sound);
   const handleCorrect = (playerIndex) => {
+    console.log('Correct! Player:', playerIndex);
     const n = state.effectCount ?? state.effects?.length ?? 0
     const pointsAwarded = calcScore(n)
     const nextImage = nextImageInList(images, state.currentImage)
@@ -263,6 +264,7 @@ export default function AdminScreen() {
         <div className="row">
           <button className="danger" onClick={() => {
             endGame();
+            handleCorrectScoreApplied();
             UseSound(Sound);
           }}>
             リザルト
@@ -309,6 +311,7 @@ export default function AdminScreen() {
             {PLAYER_LABELS.map((label, idx) => (
               <button key={label} className="answerBtn" onClick={() => {
                   handleCorrect(idx);
+                  onScoreAnimationComplete={handleCorrectScoreApplied}                
                   UseSound(Sound);
                 }}>
                 {label} 正解

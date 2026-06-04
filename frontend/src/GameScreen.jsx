@@ -35,7 +35,7 @@ export default function GameScreen() {
     const r = correctRevealRef.current
     if (!r || appliedRevealIdsRef.current.has(r.id)) return
     appliedRevealIdsRef.current.add(r.id)
-    adjustScore(r.playerIndex, r.pointsAwarded)
+    adjustScore(r.playerIndex, r.pointsAwarded / 2)//直す
   }, [adjustScore])
 
   const settings = state.settings || {}

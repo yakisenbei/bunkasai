@@ -22,7 +22,7 @@ export const PHASE_LABELS = {
 
 export function calcScore(n) {
   const clamped = Math.max(0, Math.min(5, Number(n) || 0))
-  return Math.round(1000 * 1.5 ** clamped)
+  return Math.round(1000 * 1.2 ** clamped)
 }
 
 export function effectLabels(ids) {
