@@ -173,7 +173,7 @@ export default function AdminScreen() {
   }
   
   const handleCorrect = (playerIndex) => {
-    console.log('Correct! Player:', playerIndex);
+    // console.log('Correct! Player:', playerIndex);
     const n = state.effectCount ?? state.effects?.length ?? 0
     const pointsAwarded = calcScore(n)
     const nextImage = nextImageInList(images, state.currentImage)
@@ -199,13 +199,20 @@ export default function AdminScreen() {
     })
   }
 
-  const endGame = () => patch({ phase: 'result' })
+  const endGame = () => {
+    if (!confirm('ゲームを終了してリザルトに移りますか？')) return
+    patch({ phase: 'result' })
+  }
 
   const initialize = () => {
     if (!confirm('スコア等を初期化しますか？')) return
     reset()
   }
 
+  const nocontest = () =>{
+    if (!confirm('解答者なしとしますか？')) return
+    //回答者処理追加
+  }
   const setCurrentImage = (name) => setPendingImage(name)
 
   const phaseLabel = PHASE_LABELS[state.phase] || state.phase
@@ -278,6 +285,9 @@ export default function AdminScreen() {
           </button>
           <button className="danger" onClick={initialize}>
             初期化
+          </button>
+          <button className="danger" onClick={nocontest}>
+            解答者なし
           </button>
         </div>
         <div className="muted">スペース: 停止 / 不正解時は再開</div>
