@@ -58,4 +58,4 @@ def draw_round(
 
 def calc_score(n: int) -> int:
     n = max(0, min(5, int(n)))
-    return round(1000 * (1.5**n))
+    return round(1000 * (1.2**n))
