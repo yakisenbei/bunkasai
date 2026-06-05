@@ -35,9 +35,9 @@ export default function GameScreen() {
     // 得点加算は handleCorrect（正解ボタン押下時）で即座に実行済み
   }, [])
 
-  // 正解フェーズに入ったら正解音を再生
+  // 正解フェーズに入ったら正解音を再生（nocontest時は除外）
   useEffect(() => {
-    if (state.phase === 'correct') {
+    if (state.phase === 'correct' && state.correctReveal?.playerIndex !== -1) {
       playCorrect()
       playCorrect2()
     }
