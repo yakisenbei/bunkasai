@@ -256,6 +256,10 @@ input{padding:8px 10px;border-radius:10px;border:1px solid #2d3748;background:#0
   line-height:1.1;
   text-align:center;
 }
+.correctWinnerLabel.nocontest{
+  color:#9fb5d1;
+  font-size:48px;
+}
 
 .correctPoints{
   font-size:48px;

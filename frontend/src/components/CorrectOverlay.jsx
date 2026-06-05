@@ -28,9 +28,10 @@ export default function CorrectOverlay({
 }) {
   const { width, height } = useWindowSize()
   const { playerIndex, pointsAwarded, scoresBefore, imageName, processedImageUrl, effects } = correctReveal
+  const isNoContest = playerIndex === -1
   const imageUrl = imageName ? `/images/${encodeURIComponent(imageName)}` : null
   const answerText = stripExtension(imageName)
-  const winnerLabel = playerLabels[playerIndex] ?? `P${playerIndex + 1}`
+  const winnerLabel = isNoContest ? '該当者なし' : (playerLabels[playerIndex] ?? `P${playerIndex + 1}`)
   const delayMs = (settings.correctScoreDelaySec ?? 1) * 1000
   const animMs = (settings.correctScoreAnimSec ?? 1) * 1000
   const maxOpacity = settings.correctOverlayOpacity ?? 0.72
@@ -44,7 +45,7 @@ export default function CorrectOverlay({
   const showReveal = hasVisualEffects(effects) && processedImageUrl && imageUrl
 
   const baseScores = scoresBefore ?? []
-  const finalWinnerScore = (baseScores[playerIndex] ?? 0) + pointsAwarded
+  const finalWinnerScore = isNoContest ? 0 : (baseScores[playerIndex] ?? 0) + pointsAwarded
 
   const [displayScores, setDisplayScores] = useState(() => baseScores.map((s) => s ?? 0))
   const [displayAward, setDisplayAward] = useState(0)
@@ -100,6 +101,7 @@ export default function CorrectOverlay({
       if (cancelled) return
 
       setDisplayScores((prev) => {
+        if (isNoContest) return prev
         const next = [...prev]
         next[playerIndex] = finalWinnerScore
         return next
@@ -129,13 +131,13 @@ export default function CorrectOverlay({
         width={width}
         height={height}
         recycle
-        numberOfPieces={confettiPieces}
+        numberOfPieces={isNoContest ? 0 : confettiPieces}
         gravity={confettiGravity}
       />
       <div className="correctBackdrop" style={{ opacity: maxOpacity }} />
       <div className="correctLayout">
         {/* ヘッダー */}
-        <div className="correctHeader">正解！</div>
+        <div className="correctHeader">{isNoContest ? '該当者なし' : '正解！'}</div>
         {/* 左カラム */}
         <div className="correctLeft">
           {imageUrl && !imgError && (
@@ -167,15 +169,17 @@ export default function CorrectOverlay({
         </div>
         {/* 右カラム */}
         <div className="correctRight">
-          <div className="correctWinnerLabel">{winnerLabel}</div>
-          <div className={`correctPoints${scoreAnimating ? ' animating' : ''}`}>
-            +{displayAward.toLocaleString()} 点
-          </div>
+          <div className={`correctWinnerLabel${isNoContest ? ' nocontest' : ''}`}>{winnerLabel}</div>
+          {!isNoContest && (
+            <div className={`correctPoints${scoreAnimating ? ' animating' : ''}`}>
+              +{displayAward.toLocaleString()} 点
+            </div>
+          )}
         </div>
         {/* 下エリア */}
         <div className="correctScoreArea">
           {playerLabels.map((label, idx) => {
-            const isWinner = idx === playerIndex
+            const isWinner = !isNoContest && idx === playerIndex
             return (
               <div key={label} className={`correctScoreRow${isWinner ? ' winner' : ''}`}>
                 <span className="correctScoreName">{label}</span>

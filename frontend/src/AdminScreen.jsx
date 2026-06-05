@@ -173,10 +173,10 @@ export default function AdminScreen() {
   }
   
   const handleCorrect = (playerIndex) => {
-    // console.log('Correct! Player:', playerIndex);
     const n = state.effectCount ?? state.effects?.length ?? 0
     const pointsAwarded = calcScore(n)
-    const nextImage = nextImageInList(images, state.currentImage)
+    const currentImageName = state.currentImage
+    const nextImage = nextImageInList(images, currentImageName)
     adjustScore(playerIndex, pointsAwarded)
     patch({
       phase: 'correct',
@@ -186,7 +186,7 @@ export default function AdminScreen() {
         playerIndex,
         pointsAwarded,
         scoresBefore: state.scores.slice(),
-        imageName: state.currentImage,
+        imageName: currentImageName,
         processedImageUrl: state.processedImageUrl ?? null,
         effects: state.effects ?? [],
       },
@@ -197,6 +197,8 @@ export default function AdminScreen() {
       shrinkScale: null,
       rouletteDisplay: null,
     })
+    // pendingImage を次順に進める（手動選択時の連続送り対応）
+    setPendingImage(nextImage)
   }
 
   const endGame = () => {
@@ -209,9 +211,30 @@ export default function AdminScreen() {
     reset()
   }
 
-  const nocontest = () =>{
+  const nocontest = () => {
     if (!confirm('解答者なしとしますか？')) return
-    //回答者処理追加
+    const currentImageName = state.currentImage
+    const nextImage = nextImageInList(images, currentImageName)
+    patch({
+      phase: 'correct',
+      currentImage: nextImage,
+      correctReveal: {
+        id: Date.now(),
+        playerIndex: -1,
+        pointsAwarded: 0,
+        scoresBefore: state.scores.slice(),
+        imageName: currentImageName,
+        processedImageUrl: state.processedImageUrl ?? null,
+        effects: state.effects ?? [],
+      },
+      timeLeftSec: null,
+      effects: [],
+      effectCount: 0,
+      processedImageUrl: null,
+      shrinkScale: null,
+      rouletteDisplay: null,
+    })
+    setPendingImage(nextImage)
   }
   const setCurrentImage = (name) => setPendingImage(name)
 
